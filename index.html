@@ -36,7 +36,7 @@
     button:hover {
       background: #399087;
     }
-    .folder {
+    .folder, .link-box {
       margin: 15px auto;
       padding: 15px;
       border: 1px solid #4db6ac;
@@ -45,23 +45,17 @@
       background: #222;
       cursor: pointer;
     }
-    .folder h3 {
+    .folder h3, .link-box h3 {
       margin: 0;
       color: #ffcc80;
     }
-    .link-list {
-      list-style: none;
-      padding: 0;
+    .controls {
+      margin-top: 10px;
     }
-    .link-list li {
-      margin: 5px 0;
-    }
-    .link-list a {
-      color: #81d4fa;
-      text-decoration: none;
-    }
-    .link-list a:hover {
-      text-decoration: underline;
+    .controls button {
+      margin: 3px;
+      padding: 5px 10px;
+      font-size: 0.9em;
     }
     .backBtn {
       margin: 20px;
@@ -105,7 +99,7 @@
   <script>
     // Data store
     let data = JSON.parse(localStorage.getItem("engwerdaData")) || {};
-    let currentView = "folders"; // can be "folders" or a folder name
+    let currentView = "folders"; 
 
     function saveData() {
       localStorage.setItem("engwerdaData", JSON.stringify(data));
@@ -158,7 +152,7 @@
       showAdminFolders();
     }
 
-    // User view
+    // USER VIEW
     function showUserFolders() {
       currentView = "folders";
       const container = document.getElementById("foldersContainer");
@@ -183,17 +177,16 @@
       backBtn.className = "backBtn";
       backBtn.onclick = showUserFolders;
       container.appendChild(backBtn);
-      const ul = document.createElement("ul");
-      ul.className = "link-list";
       data[folder].forEach(link => {
-        const li = document.createElement("li");
-        li.innerHTML = `<a href="${link.url}" target="_blank">${link.name}</a>`;
-        ul.appendChild(li);
+        const div = document.createElement("div");
+        div.className = "link-box";
+        div.innerHTML = `<h3>${link.name}</h3>`;
+        div.onclick = () => window.open(link.url, "_blank");
+        container.appendChild(div);
       });
-      container.appendChild(ul);
     }
 
-    // Admin view
+    // ADMIN VIEW
     function showAdminFolders() {
       currentView = "folders";
       const container = document.getElementById("adminFolders");
@@ -204,6 +197,20 @@
         div.className = "folder";
         div.innerHTML = `<h3>${folder}</h3>`;
         div.onclick = () => showAdminLinks(folder);
+        const controls = document.createElement("div");
+        controls.className = "controls";
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "Delete";
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (confirm("Delete this folder?")) {
+            delete data[folder];
+            saveData();
+            showAdminFolders();
+          }
+        };
+        controls.appendChild(delBtn);
+        div.appendChild(controls);
         container.appendChild(div);
       }
     }
@@ -218,14 +225,47 @@
       backBtn.className = "backBtn";
       backBtn.onclick = showAdminFolders;
       container.appendChild(backBtn);
-      const ul = document.createElement("ul");
-      ul.className = "link-list";
-      data[folder].forEach(link => {
-        const li = document.createElement("li");
-        li.textContent = `${link.name} → ${link.url}`;
-        ul.appendChild(li);
+
+      data[folder].forEach((link, idx) => {
+        const div = document.createElement("div");
+        div.className = "link-box";
+        div.innerHTML = `<h3>${link.name}</h3>`;
+        div.onclick = () => window.open(link.url, "_blank");
+
+        // Controls
+        const controls = document.createElement("div");
+        controls.className = "controls";
+
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "Edit";
+        editBtn.onclick = (e) => {
+          e.stopPropagation();
+          const newName = prompt("Edit link name:", link.name);
+          const newURL = prompt("Edit link URL:", link.url);
+          if (newName && newURL) {
+            data[folder][idx] = { name: newName, url: newURL };
+            saveData();
+            showAdminLinks(folder);
+          }
+        };
+
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "Delete";
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (confirm("Delete this link?")) {
+            data[folder].splice(idx, 1);
+            saveData();
+            showAdminLinks(folder);
+          }
+        };
+
+        controls.appendChild(editBtn);
+        controls.appendChild(delBtn);
+        div.appendChild(controls);
+
+        container.appendChild(div);
       });
-      container.appendChild(ul);
     }
   </script>
 </body>
