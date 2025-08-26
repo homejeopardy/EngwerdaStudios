@@ -4,121 +4,64 @@
 <meta charset="UTF-8">
 <title>Engwerda Studios</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    margin:0; padding:0;
-    background-color: #fff;
-    color:#000;
-  }
-  header {
-    background-color:#b30000;
-    color:white;
-    padding:20px;
-    text-align:center;
-    font-family:"American Typewriter", serif;
-    font-size:2em;
-  }
-  #login,#studio,#admin {
-    display:none;
-    padding:20px;
-  }
-  .item {
-    display:inline-block;
-    margin:10px;
-    padding:20px;
-    width:120px;
-    border:2px solid #b30000;
-    border-radius:8px;
-    text-align:center;
-    cursor:pointer;
-    background:#f2f2f2;
-  }
-  .item:hover {
-    background:#ffe6e6;
-  }
-  button {
-    margin:5px;
-    padding:10px 15px;
-    border:none;
-    background:#b30000;
-    color:white;
-    cursor:pointer;
-    border-radius:6px;
-  }
-  button:hover {
-    background:#800000;
-  }
-  h2 {
-    color:#b30000;
-  }
-  .controls input {
-    margin:5px;
-    padding:5px;
-  }
+body {font-family: Arial, sans-serif; margin:0; padding:0; background:#fff; color:#000;}
+header {background:#b30000;color:#fff;padding:20px;text-align:center;font-family:"American Typewriter", serif;font-size:2em;}
+#login,#studio,#admin {display:none;padding:20px;}
+.item {display:inline-block;margin:10px;padding:20px;width:120px;border:2px solid #b30000;border-radius:8px;text-align:center;cursor:pointer;background:#f2f2f2;}
+.item:hover {background:#ffe6e6;}
+button {margin:5px;padding:10px 15px;border:none;background:#b30000;color:white;cursor:pointer;border-radius:6px;}
+button:hover {background:#800000;}
+h2 {color:#b30000;}
+.controls input {margin:5px;padding:5px;}
 </style>
 </head>
 <body>
 <header>Engwerda Studios</header>
 
-<!-- LOGIN -->
 <div id="login">
-  <h2>Enter Password</h2>
-  <input type="password" id="password">
-  <button onclick="checkPassword()">Enter</button>
+<h2>Enter Password</h2>
+<input type="password" id="password">
+<button onclick="checkPassword()">Enter</button>
 </div>
 
-<!-- STUDIO PAGE -->
 <div id="studio">
-  <h2>Welcome to Engwerda Studios</h2>
-  <p>Engwerda Studios is a creative production house dedicated to innovative storytelling, visual design, and immersive media.</p>
-  <div id="fileArea"></div>
-  <button onclick="goBack()">Back</button>
-  <button onclick="logout()">Logout</button>
+<h2>Welcome to Engwerda Studios</h2>
+<p>Engwerda Studios is a creative production house dedicated to innovative storytelling, visual design, and immersive media.</p>
+<div id="fileArea"></div>
+<button onclick="goBack()">Back</button>
+<button onclick="logout()">Logout</button>
 </div>
 
-<!-- ADMIN PANEL -->
 <div id="admin">
-  <h2>Admin Panel</h2>
-  <div class="controls">
-    <input type="text" id="folderName" placeholder="Folder Name">
-    <button onclick="addFolder()">Add Folder</button><br>
-    <input type="text" id="linkName" placeholder="Link Name">
-    <input type="text" id="linkURL" placeholder="Link URL">
-    <button onclick="addLink()">Add Link</button>
-  </div>
-  <div id="adminFileArea"></div>
-  <button onclick="goBack()">Back</button>
-  <button onclick="logout()">Logout</button>
+<h2>Admin Panel</h2>
+<div class="controls">
+<input type="text" id="folderName" placeholder="Folder Name">
+<button onclick="addFolder()">Add Folder</button><br>
+<input type="text" id="linkName" placeholder="Link Name">
+<input type="text" id="linkURL" placeholder="Link URL">
+<button onclick="addLink()">Add Link</button>
+</div>
+<div id="adminFileArea"></div>
+<button onclick="goBack()">Back</button>
+<button onclick="logout()">Logout</button>
 </div>
 
 <script>
-let structure = JSON.parse(localStorage.getItem("engwerdaStructure")) || {
-  root:{ folders:[], links:[] }
-};
-let currentPath = ["root"];
+// Structure: each folder has folders[] and links[]
+let structure = JSON.parse(localStorage.getItem("engwerdaStructure")) || { folders: [], links: [] };
+let currentFolder = structure;
+let folderStack = []; // track path
 let isAdmin = false;
 
-// Helper to get current folder object
-function getCurrentFolder() {
-  let folder = structure;
-  for(let i=0;i<currentPath.length;i++){
-    folder = folder[currentPath[i]];
-  }
-  return folder;
+function save() { localStorage.setItem("engwerdaStructure", JSON.stringify(structure)); }
+
+function checkPassword() {
+  const pw = document.getElementById("password").value;
+  if(pw==="Austin"){ isAdmin=false; showStudio(); }
+  else if(pw==="Admin"){ isAdmin=true; showAdmin(); }
+  else{ alert("Wrong password"); }
 }
 
-// Save structure
-function saveStructure(){localStorage.setItem("engwerdaStructure",JSON.stringify(structure));}
-
-// Password check
-function checkPassword(){
-  let pw=document.getElementById("password").value;
-  if(pw==="Austin"){isAdmin=false; showStudio(); }
-  else if(pw==="Admin"){isAdmin=true; showAdmin();}
-  else{alert("Wrong password");}
-}
-
-// Show studio
 function showStudio(){
   document.getElementById("login").style.display="none";
   document.getElementById("studio").style.display="block";
@@ -126,7 +69,6 @@ function showStudio(){
   renderStudio();
 }
 
-// Show admin
 function showAdmin(){
   document.getElementById("login").style.display="none";
   document.getElementById("studio").style.display="none";
@@ -134,95 +76,68 @@ function showAdmin(){
   renderAdmin();
 }
 
-// Render studio view
 function renderStudio(){
-  let folder=getCurrentFolder();
-  let area=document.getElementById("fileArea");
+  const area = document.getElementById("fileArea");
   area.innerHTML="";
-  folder.folders.forEach(f=>{
-    let div=document.createElement("div");
-    div.className="item";
-    div.innerText=f.name;
-    div.onclick=()=>{currentPath.push("folders",folder.folders.indexOf(f)); renderStudio();}
+  currentFolder.folders.forEach((f, idx)=>{
+    const div=document.createElement("div");
+    div.className="item"; div.innerText=f.name;
+    div.onclick=()=>{ folderStack.push(currentFolder); currentFolder=f; renderStudio(); }
     area.appendChild(div);
   });
-  folder.links.forEach(l=>{
-    let div=document.createElement("div");
-    div.className="item";
-    div.innerText=l.name;
-    div.onclick=()=>{window.open(l.url,"_blank");}
+  currentFolder.links.forEach(l=>{
+    const div=document.createElement("div");
+    div.className="item"; div.innerText=l.name;
+    div.onclick=()=>{ window.open(l.url,"_blank"); }
     area.appendChild(div);
   });
 }
 
-// Render admin view
 function renderAdmin(){
-  let folder=getCurrentFolder();
-  let area=document.getElementById("adminFileArea");
+  const area = document.getElementById("adminFileArea");
   area.innerHTML="";
-  folder.folders.forEach((f,idx)=>{
-    let div=document.createElement("div");
-    div.className="item";
-    div.innerText=f.name;
-    div.onclick=()=>{currentPath.push("folders",idx); renderAdmin();}
-    let del=document.createElement("button");
-    del.innerText="Delete";
-    del.onclick=(e)=>{e.stopPropagation(); folder.folders.splice(idx,1); saveStructure(); renderAdmin();}
-    div.appendChild(del);
-    area.appendChild(div);
+  currentFolder.folders.forEach((f, idx)=>{
+    const div=document.createElement("div"); div.className="item"; div.innerText=f.name;
+    div.onclick=()=>{ folderStack.push(currentFolder); currentFolder=f; renderAdmin(); }
+    const del=document.createElement("button"); del.innerText="Delete";
+    del.onclick=(e)=>{ e.stopPropagation(); currentFolder.folders.splice(idx,1); save(); renderAdmin(); }
+    div.appendChild(del); area.appendChild(div);
   });
-  folder.links.forEach((l,idx)=>{
-    let div=document.createElement("div");
-    div.className="item";
-    div.innerText=l.name;
-    div.onclick=()=>{window.open(l.url,"_blank");}
-    let del=document.createElement("button");
-    del.innerText="Delete";
-    del.onclick=(e)=>{e.stopPropagation(); folder.links.splice(idx,1); saveStructure(); renderAdmin();}
-    div.appendChild(del);
-    area.appendChild(div);
+  currentFolder.links.forEach((l, idx)=>{
+    const div=document.createElement("div"); div.className="item"; div.innerText=l.name;
+    div.onclick=()=>{ window.open(l.url,"_blank"); }
+    const del=document.createElement("button"); del.innerText="Delete";
+    del.onclick=(e)=>{ e.stopPropagation(); currentFolder.links.splice(idx,1); save(); renderAdmin(); }
+    div.appendChild(del); area.appendChild(div);
   });
 }
 
-// Add folder
 function addFolder(){
-  let name=document.getElementById("folderName").value.trim();
-  if(!name){alert("Enter folder name"); return;}
-  let folder=getCurrentFolder();
-  folder.folders.push({name:name, folders:[], links:[]});
+  const name=document.getElementById("folderName").value.trim();
+  if(!name){ alert("Enter folder name"); return; }
+  currentFolder.folders.push({ name:name, folders:[], links:[] });
   document.getElementById("folderName").value="";
-  saveStructure();
-  renderAdmin();
+  save(); renderAdmin();
 }
 
-// Add link
 function addLink(){
-  let name=document.getElementById("linkName").value.trim();
-  let url=document.getElementById("linkURL").value.trim();
-  if(!name||!url){alert("Enter name and URL"); return;}
-  let folder=getCurrentFolder();
-  folder.links.push({name:name,url:url});
-  document.getElementById("linkName").value="";
-  document.getElementById("linkURL").value="";
-  saveStructure();
-  renderAdmin();
+  const name=document.getElementById("linkName").value.trim();
+  const url=document.getElementById("linkURL").value.trim();
+  if(!name||!url){ alert("Enter link name and URL"); return; }
+  currentFolder.links.push({ name:name, url:url });
+  document.getElementById("linkName").value=""; document.getElementById("linkURL").value="";
+  save(); renderAdmin();
 }
 
-// Go back
 function goBack(){
-  if(currentPath.length>1){
-    currentPath.pop();
-    if(isAdmin) renderAdmin();
-    else renderStudio();
-  }
+  if(folderStack.length>0){ currentFolder=folderStack.pop(); isAdmin?renderAdmin():renderStudio(); }
 }
 
-// Logout
 function logout(){
+  currentFolder=structure; folderStack=[];
   document.getElementById("studio").style.display="none";
   document.getElementById("admin").style.display="none";
   document.getElementById("login").style.display="block";
-  currentPath=["root"];
 }
 
 document.getElementById("login").style.display="block";
