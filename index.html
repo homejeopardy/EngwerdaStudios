@@ -53,15 +53,18 @@ let currentFolder = structure;
 let folderStack = [];
 let isAdmin = false;
 
+// Save to localStorage
 function save() { localStorage.setItem("engwerdaStructure", JSON.stringify(structure)); }
 
-function checkPassword(){
+// Check password
+function checkPassword() {
   const pw = document.getElementById("password").value;
   if(pw==="Austin"){ isAdmin=false; showStudio(); }
   else if(pw==="Admin"){ isAdmin=true; showAdmin(); }
   else { alert("Wrong password"); }
 }
 
+// Show Studio
 function showStudio(){
   document.getElementById("login").style.display="none";
   document.getElementById("studio").style.display="block";
@@ -69,6 +72,7 @@ function showStudio(){
   renderStudio();
 }
 
+// Show Admin
 function showAdmin(){
   document.getElementById("login").style.display="none";
   document.getElementById("studio").style.display="none";
@@ -76,6 +80,7 @@ function showAdmin(){
   renderAdmin();
 }
 
+// Render Studio view
 function renderStudio(){
   const area = document.getElementById("fileArea");
   area.innerHTML="";
@@ -93,6 +98,7 @@ function renderStudio(){
   });
 }
 
+// Render Admin view
 function renderAdmin(){
   const area = document.getElementById("adminFileArea");
   area.innerHTML="";
@@ -100,19 +106,22 @@ function renderAdmin(){
     const div = document.createElement("div");
     div.className="item"; div.innerText=f.name;
     div.onclick=()=>{ folderStack.push(currentFolder); currentFolder=f; renderAdmin(); }
-    const del = document.createElement("button"); del.innerText="Delete";
+    const del = document.createElement("button");
+    del.innerText="Delete";
     del.onclick=(e)=>{ e.stopPropagation(); currentFolder.folders.splice(idx,1); save(); renderAdmin(); }
     div.appendChild(del); area.appendChild(div);
   });
   currentFolder.links.forEach((l, idx)=>{
     const div = document.createElement("div"); div.className="item"; div.innerText=l.name;
     div.onclick=()=>{ window.open(l.url,"_blank"); }
-    const del = document.createElement("button"); del.innerText="Delete";
+    const del = document.createElement("button");
+    del.innerText="Delete";
     del.onclick=(e)=>{ e.stopPropagation(); currentFolder.links.splice(idx,1); save(); renderAdmin(); }
     div.appendChild(del); area.appendChild(div);
   });
 }
 
+// Add Folder
 function addFolder(){
   const name=document.getElementById("folderName").value.trim();
   if(!name){ alert("Enter folder name"); return; }
@@ -121,6 +130,7 @@ function addFolder(){
   save(); renderAdmin();
 }
 
+// Add Link
 function addLink(){
   const name=document.getElementById("linkName").value.trim();
   const url=document.getElementById("linkURL").value.trim();
@@ -130,10 +140,12 @@ function addLink(){
   save(); renderAdmin();
 }
 
+// Go Back
 function goBack(){
-  if(folderStack.length>0){ currentFolder=folderStack.pop(); isAdmin?renderAdmin():renderStudio(); }
+  if(folderStack.length>0){ currentFolder = folderStack.pop(); isAdmin?renderAdmin():renderStudio(); }
 }
 
+// Logout
 function logout(){
   currentFolder = structure; folderStack=[];
   document.getElementById("studio").style.display="none";
@@ -141,6 +153,7 @@ function logout(){
   document.getElementById("login").style.display="block";
 }
 
+// Show login on start
 document.getElementById("login").style.display="block";
 </script>
 </body>
