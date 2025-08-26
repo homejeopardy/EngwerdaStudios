@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Engwerda Studios</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    h1 {
+      margin-top: 20px;
+      color: #4db6ac;
+    }
+    .login, .content, .admin {
+      margin-top: 50px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 5px;
+      border: none;
+    }
+    input {
+      width: 200px;
+    }
+    button {
+      background: #4db6ac;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #399087;
+    }
+    .folder {
+      margin: 20px auto;
+      padding: 15px;
+      border: 1px solid #4db6ac;
+      border-radius: 8px;
+      width: 300px;
+      background: #222;
+    }
+    .folder h3 {
+      margin: 0 0 10px 0;
+      color: #ffcc80;
+    }
+    .link-list {
+      list-style: none;
+      padding: 0;
+    }
+    .link-list li {
+      margin: 5px 0;
+    }
+    .link-list a {
+      color: #81d4fa;
+      text-decoration: none;
+    }
+    .link-list a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>Engwerda Studios</h1>
+  
+  <!-- Login -->
+  <div class="login" id="loginDiv">
+    <p>Enter Password:</p>
+    <input type="password" id="passwordInput" placeholder="Password">
+    <button onclick="checkPassword()">Enter</button>
+  </div>
+
+  <!-- User Content -->
+  <div class="content" id="contentDiv" style="display:none;">
+    <h2>Folders & Links</h2>
+    <div id="foldersContainer"></div>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <!-- Admin Panel -->
+  <div class="admin" id="adminDiv" style="display:none;">
+    <h2>Admin Panel</h2>
+    <h3>Add Folder</h3>
+    <input type="text" id="folderName" placeholder="Folder name">
+    <button onclick="addFolder()">Add Folder</button>
+    <h3>Add Link</h3>
+    <input type="text" id="folderSelect" placeholder="Folder name">
+    <input type="text" id="linkName" placeholder="Link name">
+    <input type="text" id="linkURL" placeholder="https://example.com">
+    <button onclick="addLink()">Add Link</button>
+    <div id="adminFolders"></div>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    // Load saved data
+    let data = JSON.parse(localStorage.getItem("engwerdaData")) || {};
+
+    function saveData() {
+      localStorage.setItem("engwerdaData", JSON.stringify(data));
+      renderFolders();
+      renderAdmin();
+    }
+
+    function checkPassword() {
+      const pwd = document.getElementById("passwordInput").value;
+      if (pwd === "Austin") {
+        document.getElementById("loginDiv").style.display = "none";
+        document.getElementById("contentDiv").style.display = "block";
+        renderFolders();
+      } else if (pwd === "Admin") {
+        document.getElementById("loginDiv").style.display = "none";
+        document.getElementById("adminDiv").style.display = "block";
+        renderAdmin();
+      } else {
+        alert("Incorrect password!");
+      }
+    }
+
+    function logout() {
+      document.getElementById("loginDiv").style.display = "block";
+      document.getElementById("contentDiv").style.display = "none";
+      document.getElementById("adminDiv").style.display = "none";
+      document.getElementById("passwordInput").value = "";
+    }
+
+    function addFolder() {
+      const name = document.getElementById("folderName").value.trim();
+      if (!name) { alert("Enter folder name"); return; }
+      if (!data[name]) data[name] = [];
+      document.getElementById("folderName").value = "";
+      saveData();
+    }
+
+    function addLink() {
+      const folder = document.getElementById("folderSelect").value.trim();
+      const linkName = document.getElementById("linkName").value.trim();
+      const linkURL = document.getElementById("linkURL").value.trim();
+      if (!folder || !linkName || !linkURL) { alert("Fill all fields"); return; }
+      if (!data[folder]) { alert("Folder does not exist!"); return; }
+      data[folder].push({ name: linkName, url: linkURL });
+      document.getElementById("linkName").value = "";
+      document.getElementById("linkURL").value = "";
+      saveData();
+    }
+
+    function renderFolders() {
+      const container = document.getElementById("foldersContainer");
+      container.innerHTML = "";
+      for (let folder in data) {
+        const div = document.createElement("div");
+        div.className = "folder";
+        div.innerHTML = `<h3>${folder}</h3>`;
+        const ul = document.createElement("ul");
+        ul.className = "link-list";
+        data[folder].forEach(link => {
+          const li = document.createElement("li");
+          li.innerHTML = `<a href="${link.url}" target="_blank">${link.name}</a>`;
+          ul.appendChild(li);
+        });
+        div.appendChild(ul);
+        container.appendChild(div);
+      }
+    }
+
+    function renderAdmin() {
+      const container = document.getElementById("adminFolders");
+      container.innerHTML = "<h3>Existing Folders</h3>";
+      for (let folder in data) {
+        const div = document.createElement("div");
+        div.className = "folder";
+        div.innerHTML = `<h3>${folder}</h3>`;
+        const ul = document.createElement("ul");
+        ul.className = "link-list";
+        data[folder].forEach(link => {
+          const li = document.createElement("li");
+          li.textContent = `${link.name} → ${link.url}`;
+          ul.appendChild(li);
+        });
+        div.appendChild(ul);
+        container.appendChild(div);
+      }
+    }
+  </script>
+</body>
+</html>
