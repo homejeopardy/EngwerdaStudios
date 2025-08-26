@@ -7,187 +7,168 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #fff;
-      color: #b00000;
+      background: white;
+      color: #222;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
     }
     header {
+      background: red;
+      color: white;
+      width: 100%;
+      padding: 20px;
+      text-align: center;
       font-family: "American Typewriter", serif;
-      font-size: 2.5em;
-      color: #b00000;
-      margin-bottom: 20px;
+      font-size: 2em;
     }
-    #login {
-      margin-top: 50px;
-    }
-    input[type=password] {
-      padding: 10px;
-      font-size: 1em;
-      border: 2px solid #b00000;
+    #content {
+      max-width: 800px;
+      margin: 20px;
+      padding: 20px;
+      border: 2px solid red;
       border-radius: 8px;
-      margin-right: 10px;
+      background: #fff;
+    }
+    .folder, .link {
+      display: inline-block;
+      margin: 10px;
+      padding: 20px;
+      width: 100px;
+      height: 100px;
+      border: 2px solid red;
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      background: white;
+      color: red;
+      font-weight: bold;
+    }
+    .folder:hover, .link:hover {
+      background: #ffe5e5;
+    }
+    #adminControls {
+      margin-top: 20px;
+      padding: 15px;
+      border: 2px dashed red;
+      display: none;
+    }
+    input, button {
+      margin: 5px;
+      padding: 8px;
+      border: 1px solid red;
+      border-radius: 5px;
     }
     button {
-      background: #b00000;
+      background: red;
       color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 16px;
-      font-size: 1em;
       cursor: pointer;
     }
     button:hover {
-      background: #800000;
-    }
-    .container {
-      width: 100%;
-      max-width: 700px;
-    }
-    .item {
-      border: 2px solid #b00000;
-      border-radius: 12px;
-      padding: 15px;
-      margin: 10px 0;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .item:hover {
-      background: #ffe5e5;
-    }
-    .controls {
-      margin-left: 20px;
-    }
-    .hidden {
-      display: none;
-    }
-    .back-btn {
-      margin: 10px 0;
+      background: #b30000;
     }
   </style>
 </head>
 <body>
   <header>Engwerda Studios</header>
-
-  <div id="login">
-    <input type="password" id="password" placeholder="Enter password">
-    <button onclick="login()">Enter</button>
-  </div>
-
-  <div id="userView" class="hidden container">
-    <button class="back-btn hidden" onclick="goBack()">⬅ Back</button>
-    <div id="folderContainer"></div>
-  </div>
-
-  <div id="adminView" class="hidden container">
-    <h2>Admin Controls</h2>
-    <button class="back-btn hidden" onclick="goBack()">⬅ Back</button>
-    <div>
-      <input type="text" id="newName" placeholder="Folder/Link name">
-      <input type="text" id="newUrl" placeholder="Leave blank for folder">
-      <button onclick="addItem()">Add</button>
+  <div id="content">
+    <div id="login">
+      <h2>Enter Password</h2>
+      <input type="password" id="passwordInput" placeholder="Password">
+      <button onclick="checkPassword()">Enter</button>
     </div>
-    <div id="adminContainer"></div>
+    <div id="mainPage" style="display:none;">
+      <h2>Welcome to Engwerda Studios</h2>
+      <p>
+        Engwerda Studios is a creative production house focused on film, design, and multimedia storytelling. 
+        We bring innovative ideas to life through a blend of artistry and technology, 
+        delivering high-quality experiences that inspire and connect audiences.
+      </p>
+      <div id="items"></div>
+    </div>
+    <div id="adminControls">
+      <h3>Admin Controls</h3>
+      <input type="text" id="newFolderName" placeholder="Folder Name">
+      <button onclick="addFolder()">Add Folder</button><br>
+      <input type="text" id="newLinkName" placeholder="Link Name">
+      <input type="text" id="newLinkURL" placeholder="Link URL">
+      <button onclick="addLink()">Add Link</button>
+      <button onclick="resetAll()">Reset All</button>
+    </div>
   </div>
 
   <script>
-    let data = [
-      { type: 'folder', name: 'Projects', contents: [
-        { type: 'link', name: 'Website', url: 'https://example.com' }
-      ]},
-      { type: 'link', name: 'Portfolio', url: 'https://example.org' }
-    ];
-    let currentPath = [];
-    let isAdmin = false;
+    let items = JSON.parse(localStorage.getItem("engwerdaItems")) || [];
 
-    function login() {
-      const pwd = document.getElementById('password').value;
-      if (pwd === "Austin") {
-        document.getElementById('login').classList.add('hidden');
-        document.getElementById('userView').classList.remove('hidden');
-        render();
-      } else if (pwd === "Admin") {
-        document.getElementById('login').classList.add('hidden');
-        document.getElementById('adminView').classList.remove('hidden');
-        isAdmin = true;
-        render();
+    function checkPassword() {
+      const pass = document.getElementById("passwordInput").value;
+      document.getElementById("login").style.display = "none";
+      if (pass === "Austin") {
+        document.getElementById("mainPage").style.display = "block";
+        renderItems();
+      } else if (pass === "Admin") {
+        document.getElementById("mainPage").style.display = "block";
+        document.getElementById("adminControls").style.display = "block";
+        renderItems();
       } else {
-        alert("Wrong password");
+        alert("Wrong password!");
+        document.getElementById("login").style.display = "block";
       }
     }
 
-    function getCurrentFolder() {
-      let folder = { contents: data };
-      for (const name of currentPath) {
-        folder = folder.contents.find(i => i.type === 'folder' && i.name === name);
+    function saveItems() {
+      localStorage.setItem("engwerdaItems", JSON.stringify(items));
+    }
+
+    function renderItems() {
+      const itemsDiv = document.getElementById("items");
+      itemsDiv.innerHTML = "";
+      items.forEach((item, index) => {
+        let el = document.createElement("div");
+        el.className = item.type;
+        el.innerText = item.name;
+        el.onclick = () => {
+          if (item.type === "folder") {
+            alert("Entering folder: " + item.name);
+          } else if (item.type === "link") {
+            window.open(item.url, "_blank");
+          }
+        };
+        itemsDiv.appendChild(el);
+      });
+    }
+
+    function addFolder() {
+      const name = document.getElementById("newFolderName").value;
+      if (name) {
+        items.push({ type: "folder", name: name });
+        saveItems();
+        renderItems();
+        document.getElementById("newFolderName").value = "";
       }
-      return folder;
     }
 
-    function render() {
-      const folder = getCurrentFolder();
-      const items = folder.contents || [];
-      const container = isAdmin ? document.getElementById('adminContainer') : document.getElementById('folderContainer');
-      container.innerHTML = "";
-
-      document.querySelectorAll('.back-btn').forEach(btn => {
-        btn.classList.toggle('hidden', currentPath.length === 0);
-      });
-
-      items.forEach((item, idx) => {
-        const div = document.createElement('div');
-        div.className = "item";
-        div.innerHTML = `<span>${item.name}</span>`;
-
-        if (item.type === 'folder') {
-          div.onclick = () => {
-            currentPath.push(item.name);
-            render();
-          };
-        } else {
-          div.onclick = () => window.open(item.url, "_blank");
-        }
-
-        if (isAdmin) {
-          const controls = document.createElement('div');
-          controls.className = "controls";
-          controls.innerHTML = `
-            <button onclick="event.stopPropagation(); deleteItem(${idx})">Delete</button>
-          `;
-          div.appendChild(controls);
-        }
-
-        container.appendChild(div);
-      });
+    function addLink() {
+      const name = document.getElementById("newLinkName").value;
+      const url = document.getElementById("newLinkURL").value;
+      if (name && url) {
+        items.push({ type: "link", name: name, url: url });
+        saveItems();
+        renderItems();
+        document.getElementById("newLinkName").value = "";
+        document.getElementById("newLinkURL").value = "";
+      }
     }
 
-    function goBack() {
-      currentPath.pop();
-      render();
+    function resetAll() {
+      if (confirm("Are you sure you want to reset everything?")) {
+        items = [];
+        saveItems();
+        renderItems();
+      }
     }
 
-    function addItem() {
-      const name = document.getElementById('newName').value.trim();
-      const url = document.getElementById('newUrl').value.trim();
-      if (!name) return;
-
-      const folder = getCurrentFolder();
-      if (!folder.contents) folder.contents = [];
-      folder.contents.push(url ? { type: 'link', name, url } : { type: 'folder', name, contents: [] });
-      document.getElementById('newName').value = "";
-      document.getElementById('newUrl').value = "";
-      render();
-    }
-
-    function deleteItem(idx) {
-      const folder = getCurrentFolder();
-      folder.contents.splice(idx, 1);
-      render();
-    }
+    renderItems();
   </script>
 </body>
 </html>
