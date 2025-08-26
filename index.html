@@ -5,267 +5,188 @@
   <title>Engwerda Studios</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #eee;
       margin: 0;
-      padding: 0;
-      text-align: center;
+      font-family: Arial, sans-serif;
+      background: #fff;
+      color: #b00000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
     }
-    h1 {
-      margin-top: 20px;
-      color: #4db6ac;
+    header {
+      font-family: "American Typewriter", serif;
+      font-size: 2.5em;
+      color: #b00000;
+      margin-bottom: 20px;
     }
-    .login, .content, .admin {
-      margin-top: 30px;
+    #login {
+      margin-top: 50px;
     }
-    input, button {
+    input[type=password] {
       padding: 10px;
-      margin: 5px;
-      border-radius: 5px;
-      border: none;
-    }
-    input {
-      width: 200px;
+      font-size: 1em;
+      border: 2px solid #b00000;
+      border-radius: 8px;
+      margin-right: 10px;
     }
     button {
-      background: #4db6ac;
-      color: #fff;
+      background: #b00000;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 1em;
       cursor: pointer;
     }
     button:hover {
-      background: #399087;
+      background: #800000;
     }
-    .folder, .link-box {
-      margin: 15px auto;
+    .container {
+      width: 100%;
+      max-width: 700px;
+    }
+    .item {
+      border: 2px solid #b00000;
+      border-radius: 12px;
       padding: 15px;
-      border: 1px solid #4db6ac;
-      border-radius: 8px;
-      width: 300px;
-      background: #222;
+      margin: 10px 0;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-    .folder h3, .link-box h3 {
-      margin: 0;
-      color: #ffcc80;
+    .item:hover {
+      background: #ffe5e5;
     }
     .controls {
-      margin-top: 10px;
+      margin-left: 20px;
     }
-    .controls button {
-      margin: 3px;
-      padding: 5px 10px;
-      font-size: 0.9em;
+    .hidden {
+      display: none;
     }
-    .backBtn {
-      margin: 20px;
-      display: block;
+    .back-btn {
+      margin: 10px 0;
     }
   </style>
 </head>
 <body>
-  <h1>Engwerda Studios</h1>
-  
-  <!-- Login -->
-  <div class="login" id="loginDiv">
-    <p>Enter Password:</p>
-    <input type="password" id="passwordInput" placeholder="Password">
-    <button onclick="checkPassword()">Enter</button>
+  <header>Engwerda Studios</header>
+
+  <div id="login">
+    <input type="password" id="password" placeholder="Enter password">
+    <button onclick="login()">Enter</button>
   </div>
 
-  <!-- User Content -->
-  <div class="content" id="contentDiv" style="display:none;">
-    <h2 id="userHeader">Folders</h2>
-    <div id="foldersContainer"></div>
-    <button onclick="logout()">Logout</button>
+  <div id="userView" class="hidden container">
+    <button class="back-btn hidden" onclick="goBack()">⬅ Back</button>
+    <div id="folderContainer"></div>
   </div>
 
-  <!-- Admin Panel -->
-  <div class="admin" id="adminDiv" style="display:none;">
-    <h2>Admin Panel</h2>
-    <h3>Add Folder</h3>
-    <input type="text" id="folderName" placeholder="Folder name">
-    <button onclick="addFolder()">Add Folder</button>
-    <h3>Add Link</h3>
-    <input type="text" id="folderSelect" placeholder="Folder name">
-    <input type="text" id="linkName" placeholder="Link name">
-    <input type="text" id="linkURL" placeholder="https://example.com">
-    <button onclick="addLink()">Add Link</button>
-    <h2 id="adminHeader">Folders</h2>
-    <div id="adminFolders"></div>
-    <button onclick="logout()">Logout</button>
+  <div id="adminView" class="hidden container">
+    <h2>Admin Controls</h2>
+    <button class="back-btn hidden" onclick="goBack()">⬅ Back</button>
+    <div>
+      <input type="text" id="newName" placeholder="Folder/Link name">
+      <input type="text" id="newUrl" placeholder="Leave blank for folder">
+      <button onclick="addItem()">Add</button>
+    </div>
+    <div id="adminContainer"></div>
   </div>
 
   <script>
-    // Data store
-    let data = JSON.parse(localStorage.getItem("engwerdaData")) || {};
-    let currentView = "folders"; 
+    let data = [
+      { type: 'folder', name: 'Projects', contents: [
+        { type: 'link', name: 'Website', url: 'https://example.com' }
+      ]},
+      { type: 'link', name: 'Portfolio', url: 'https://example.org' }
+    ];
+    let currentPath = [];
+    let isAdmin = false;
 
-    function saveData() {
-      localStorage.setItem("engwerdaData", JSON.stringify(data));
-    }
-
-    function checkPassword() {
-      const pwd = document.getElementById("passwordInput").value;
+    function login() {
+      const pwd = document.getElementById('password').value;
       if (pwd === "Austin") {
-        document.getElementById("loginDiv").style.display = "none";
-        document.getElementById("contentDiv").style.display = "block";
-        showUserFolders();
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('userView').classList.remove('hidden');
+        render();
       } else if (pwd === "Admin") {
-        document.getElementById("loginDiv").style.display = "none";
-        document.getElementById("adminDiv").style.display = "block";
-        showAdminFolders();
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('adminView').classList.remove('hidden');
+        isAdmin = true;
+        render();
       } else {
-        alert("Incorrect password!");
+        alert("Wrong password");
       }
     }
 
-    function logout() {
-      document.getElementById("loginDiv").style.display = "block";
-      document.getElementById("contentDiv").style.display = "none";
-      document.getElementById("adminDiv").style.display = "none";
-      document.getElementById("passwordInput").value = "";
-      currentView = "folders";
-    }
-
-    // Add folder
-    function addFolder() {
-      const name = document.getElementById("folderName").value.trim();
-      if (!name) { alert("Enter folder name"); return; }
-      if (!data[name]) data[name] = [];
-      document.getElementById("folderName").value = "";
-      saveData();
-      showAdminFolders();
-    }
-
-    // Add link
-    function addLink() {
-      const folder = document.getElementById("folderSelect").value.trim();
-      const linkName = document.getElementById("linkName").value.trim();
-      const linkURL = document.getElementById("linkURL").value.trim();
-      if (!folder || !linkName || !linkURL) { alert("Fill all fields"); return; }
-      if (!data[folder]) { alert("Folder does not exist!"); return; }
-      data[folder].push({ name: linkName, url: linkURL });
-      document.getElementById("linkName").value = "";
-      document.getElementById("linkURL").value = "";
-      saveData();
-      showAdminFolders();
-    }
-
-    // USER VIEW
-    function showUserFolders() {
-      currentView = "folders";
-      const container = document.getElementById("foldersContainer");
-      document.getElementById("userHeader").textContent = "Folders";
-      container.innerHTML = "";
-      for (let folder in data) {
-        const div = document.createElement("div");
-        div.className = "folder";
-        div.innerHTML = `<h3>${folder}</h3>`;
-        div.onclick = () => showUserLinks(folder);
-        container.appendChild(div);
+    function getCurrentFolder() {
+      let folder = { contents: data };
+      for (const name of currentPath) {
+        folder = folder.contents.find(i => i.type === 'folder' && i.name === name);
       }
+      return folder;
     }
 
-    function showUserLinks(folder) {
-      currentView = folder;
-      const container = document.getElementById("foldersContainer");
-      document.getElementById("userHeader").textContent = folder;
+    function render() {
+      const folder = getCurrentFolder();
+      const items = folder.contents || [];
+      const container = isAdmin ? document.getElementById('adminContainer') : document.getElementById('folderContainer');
       container.innerHTML = "";
-      const backBtn = document.createElement("button");
-      backBtn.textContent = "← Back to folders";
-      backBtn.className = "backBtn";
-      backBtn.onclick = showUserFolders;
-      container.appendChild(backBtn);
-      data[folder].forEach(link => {
-        const div = document.createElement("div");
-        div.className = "link-box";
-        div.innerHTML = `<h3>${link.name}</h3>`;
-        div.onclick = () => window.open(link.url, "_blank");
+
+      document.querySelectorAll('.back-btn').forEach(btn => {
+        btn.classList.toggle('hidden', currentPath.length === 0);
+      });
+
+      items.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = "item";
+        div.innerHTML = `<span>${item.name}</span>`;
+
+        if (item.type === 'folder') {
+          div.onclick = () => {
+            currentPath.push(item.name);
+            render();
+          };
+        } else {
+          div.onclick = () => window.open(item.url, "_blank");
+        }
+
+        if (isAdmin) {
+          const controls = document.createElement('div');
+          controls.className = "controls";
+          controls.innerHTML = `
+            <button onclick="event.stopPropagation(); deleteItem(${idx})">Delete</button>
+          `;
+          div.appendChild(controls);
+        }
+
         container.appendChild(div);
       });
     }
 
-    // ADMIN VIEW
-    function showAdminFolders() {
-      currentView = "folders";
-      const container = document.getElementById("adminFolders");
-      document.getElementById("adminHeader").textContent = "Folders";
-      container.innerHTML = "";
-      for (let folder in data) {
-        const div = document.createElement("div");
-        div.className = "folder";
-        div.innerHTML = `<h3>${folder}</h3>`;
-        div.onclick = () => showAdminLinks(folder);
-        const controls = document.createElement("div");
-        controls.className = "controls";
-        const delBtn = document.createElement("button");
-        delBtn.textContent = "Delete";
-        delBtn.onclick = (e) => {
-          e.stopPropagation();
-          if (confirm("Delete this folder?")) {
-            delete data[folder];
-            saveData();
-            showAdminFolders();
-          }
-        };
-        controls.appendChild(delBtn);
-        div.appendChild(controls);
-        container.appendChild(div);
-      }
+    function goBack() {
+      currentPath.pop();
+      render();
     }
 
-    function showAdminLinks(folder) {
-      currentView = folder;
-      const container = document.getElementById("adminFolders");
-      document.getElementById("adminHeader").textContent = folder;
-      container.innerHTML = "";
-      const backBtn = document.createElement("button");
-      backBtn.textContent = "← Back to folders";
-      backBtn.className = "backBtn";
-      backBtn.onclick = showAdminFolders;
-      container.appendChild(backBtn);
+    function addItem() {
+      const name = document.getElementById('newName').value.trim();
+      const url = document.getElementById('newUrl').value.trim();
+      if (!name) return;
 
-      data[folder].forEach((link, idx) => {
-        const div = document.createElement("div");
-        div.className = "link-box";
-        div.innerHTML = `<h3>${link.name}</h3>`;
-        div.onclick = () => window.open(link.url, "_blank");
+      const folder = getCurrentFolder();
+      if (!folder.contents) folder.contents = [];
+      folder.contents.push(url ? { type: 'link', name, url } : { type: 'folder', name, contents: [] });
+      document.getElementById('newName').value = "";
+      document.getElementById('newUrl').value = "";
+      render();
+    }
 
-        // Controls
-        const controls = document.createElement("div");
-        controls.className = "controls";
-
-        const editBtn = document.createElement("button");
-        editBtn.textContent = "Edit";
-        editBtn.onclick = (e) => {
-          e.stopPropagation();
-          const newName = prompt("Edit link name:", link.name);
-          const newURL = prompt("Edit link URL:", link.url);
-          if (newName && newURL) {
-            data[folder][idx] = { name: newName, url: newURL };
-            saveData();
-            showAdminLinks(folder);
-          }
-        };
-
-        const delBtn = document.createElement("button");
-        delBtn.textContent = "Delete";
-        delBtn.onclick = (e) => {
-          e.stopPropagation();
-          if (confirm("Delete this link?")) {
-            data[folder].splice(idx, 1);
-            saveData();
-            showAdminLinks(folder);
-          }
-        };
-
-        controls.appendChild(editBtn);
-        controls.appendChild(delBtn);
-        div.appendChild(controls);
-
-        container.appendChild(div);
-      });
+    function deleteItem(idx) {
+      const folder = getCurrentFolder();
+      folder.contents.splice(idx, 1);
+      render();
     }
   </script>
 </body>
