@@ -5,203 +5,209 @@
   <title>Engwerda Studios</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: white;
-      color: #b30000;
-      text-align: center;
       margin: 0;
-      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #fff;
+      color: #000;
     }
     header {
       background-color: #b30000;
       color: white;
       padding: 20px;
+      text-align: center;
       font-family: "American Typewriter", serif;
-      font-size: 32px;
-      font-weight: bold;
+      font-size: 2em;
+      letter-spacing: 2px;
     }
-    #login {
-      margin-top: 100px;
-    }
-    .container {
+    main {
       padding: 20px;
     }
-    .item {
-      display: inline-block;
-      width: 120px;
-      height: 120px;
-      margin: 15px;
-      border: 2px solid #b30000;
-      border-radius: 12px;
-      background-color: white;
-      color: #b30000;
-      cursor: pointer;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      transition: transform 0.2s;
+    .login {
+      max-width: 300px;
+      margin: 100px auto;
+      text-align: center;
     }
-    .item:hover {
-      transform: scale(1.05);
-      background-color: #ffe5e5;
+    .login input {
+      padding: 10px;
+      width: 80%;
+      margin-bottom: 10px;
     }
-    .admin-panel {
-      margin-top: 30px;
-      padding: 20px;
-      border-top: 2px solid #b30000;
-    }
-    input, button, textarea {
-      margin: 8px;
-      padding: 8px;
-      border: 1px solid #b30000;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-    button {
+    .login button {
+      padding: 10px 20px;
       background-color: #b30000;
       color: white;
+      border: none;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #800000;
+    .file-item {
+      display: inline-block;
+      text-align: center;
+      margin: 20px;
+      cursor: pointer;
     }
-    #about {
-      margin-top: 40px;
-      text-align: left;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
+    .file-item img {
+      width: 64px;
+      height: 64px;
+    }
+    .admin-panel {
+      margin-top: 20px;
+      padding: 15px;
+      border: 2px solid #b30000;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+    }
+    .admin-panel h3 {
+      margin-top: 0;
+      color: #b30000;
+    }
+    input, select, button {
+      margin: 5px 0;
+    }
+    .back-btn {
+      display: block;
+      margin-bottom: 20px;
+      color: #b30000;
+      text-decoration: underline;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <header>Engwerda Studios</header>
-  <div id="login">
-    <h2>Enter Password</h2>
-    <input type="password" id="passwordInput" placeholder="Password">
-    <button onclick="checkPassword()">Enter</button>
-  </div>
-
-  <div id="main" style="display:none;">
-    <div class="container" id="fileContainer"></div>
-    <div id="about">
-      <h2>About Engwerda Studios</h2>
-      <p id="aboutContent">
-        Engwerda Studios is a creative hub dedicated to producing high-quality projects in film, music, and design. 
-        We believe in the power of storytelling, innovation, and collaboration. Our studio combines passion with professionalism 
-        to bring ideas to life and share them with the world.
-      </p>
+  <main id="content">
+    <div class="login" id="login">
+      <h2>Enter Password</h2>
+      <input type="password" id="password" placeholder="Password">
+      <br>
+      <button onclick="checkPassword()">Enter</button>
     </div>
-  </div>
-
-  <div id="admin" style="display:none;">
-    <h2>Admin Panel</h2>
-    <div class="admin-panel">
-      <h3>Add Folder</h3>
-      <input type="text" id="folderName" placeholder="Folder Name">
-      <button onclick="addFolder()">Add</button>
-
-      <h3>Add Link</h3>
-      <input type="text" id="linkName" placeholder="Link Name">
-      <input type="text" id="linkURL" placeholder="Link URL">
-      <button onclick="addLink()">Add</button>
-
-      <h3>Edit About Section</h3>
-      <textarea id="aboutEditor" rows="5" cols="50"></textarea><br>
-      <button onclick="saveAbout()">Save About</button>
-    </div>
-    <div class="container" id="adminFileContainer"></div>
-  </div>
+  </main>
 
   <script>
     let currentPath = [];
     let isAdmin = false;
 
-    // Load data from localStorage or set defaults
-    let data = JSON.parse(localStorage.getItem("engwerdaData")) || {
-      folders: {},
-      links: [],
-      about: document.getElementById("aboutContent").innerText
+    // Load saved structure from localStorage or default
+    let siteStructure = JSON.parse(localStorage.getItem("engwerdaData")) || {
+      folders: {
+        "Projects": { folders: {}, links: { "Website": "https://example.com" } }
+      },
+      links: {
+        "Studio Reel": "https://example.com/reel.mp4"
+      }
     };
 
+    function saveStructure() {
+      localStorage.setItem("engwerdaData", JSON.stringify(siteStructure));
+    }
+
     function checkPassword() {
-      const pass = document.getElementById("passwordInput").value;
-      if (pass === "Austin") {
-        document.getElementById("login").style.display = "none";
-        document.getElementById("main").style.display = "block";
+      const pw = document.getElementById("password").value;
+      if (pw === "Austin") {
         isAdmin = false;
-        renderFiles();
-      } else if (pass === "Admin") {
-        document.getElementById("login").style.display = "none";
-        document.getElementById("admin").style.display = "block";
+        loadPage();
+      } else if (pw === "Admin") {
         isAdmin = true;
-        renderFiles(true);
-        document.getElementById("aboutEditor").value = data.about;
+        loadPage();
       } else {
-        alert("Incorrect password!");
+        alert("Incorrect password");
       }
     }
 
-    function renderFiles(admin=false) {
-      const container = document.getElementById(admin ? "adminFileContainer" : "fileContainer");
-      container.innerHTML = "";
+    function getCurrentFolder() {
+      let folder = siteStructure;
+      for (let p of currentPath) {
+        folder = folder.folders[p];
+      }
+      return folder;
+    }
 
-      let folder = data.folders;
-      for (let part of currentPath) {
-        folder = folder[part].folders;
+    function loadPage() {
+      const content = document.getElementById("content");
+      let folder = getCurrentFolder();
+
+      let html = "";
+      if (currentPath.length > 0) {
+        html += `<div class="back-btn" onclick="goBack()">⬅ Back</div>`;
+      } else {
+        html += `
+          <h2>Welcome to Engwerda Studios</h2>
+          <p>Engwerda Studios is a creative hub for film, music, and digital media. 
+          We specialize in storytelling that inspires, challenges, and connects audiences worldwide.</p>
+          <p>Explore our projects, collaborations, and archives using the folders and links below.</p>
+        `;
       }
 
-      // Folders
-      for (let f in folder) {
-        let div = document.createElement("div");
-        div.className = "item";
-        div.innerText = f;
-        div.onclick = () => {
-          currentPath.push(f);
-          renderFiles(admin);
-        };
-        container.appendChild(div);
+      // Display folders
+      for (let f in folder.folders) {
+        html += `
+          <div class="file-item" onclick="enterFolder('${f}')">
+            <img src="https://img.icons8.com/fluency/96/folder-invoices.png" alt="folder">
+            <div>${f}</div>
+          </div>`;
       }
 
-      // Links
-      let links = admin ? data.links : data.links;
-      for (let link of links) {
-        let div = document.createElement("div");
-        div.className = "item";
-        div.innerText = link.name;
-        div.onclick = () => window.open(link.url, "_blank");
-        container.appendChild(div);
+      // Display links
+      for (let l in folder.links) {
+        html += `
+          <div class="file-item" onclick="window.open('${folder.links[l]}','_blank')">
+            <img src="https://img.icons8.com/fluency/96/document.png" alt="link">
+            <div>${l}</div>
+          </div>`;
       }
+
+      if (isAdmin) {
+        html += `
+          <div class="admin-panel">
+            <h3>Admin Panel</h3>
+            <label>New Folder:</label><br>
+            <input type="text" id="newFolder" placeholder="Folder name">
+            <button onclick="addFolder()">Add Folder</button><br>
+
+            <label>New Link:</label><br>
+            <input type="text" id="newLinkName" placeholder="Link name"><br>
+            <input type="text" id="newLinkUrl" placeholder="Link URL">
+            <button onclick="addLink()">Add Link</button>
+          </div>
+        `;
+      }
+
+      content.innerHTML = html;
+    }
+
+    function enterFolder(name) {
+      currentPath.push(name);
+      loadPage();
+    }
+
+    function goBack() {
+      currentPath.pop();
+      loadPage();
     }
 
     function addFolder() {
-      const name = document.getElementById("folderName").value.trim();
-      if (!name) return alert("Folder name required.");
-      if (!data.folders[name]) data.folders[name] = { folders: {}, links: [] };
-      saveData();
-      renderFiles(true);
+      const name = document.getElementById("newFolder").value.trim();
+      if (name) {
+        let folder = getCurrentFolder();
+        if (!folder.folders[name]) {
+          folder.folders[name] = { folders: {}, links: {} };
+          saveStructure();
+          loadPage();
+        } else {
+          alert("Folder already exists!");
+        }
+      }
     }
 
     function addLink() {
-      const name = document.getElementById("linkName").value.trim();
-      const url = document.getElementById("linkURL").value.trim();
-      if (!name || !url) return alert("Both fields required.");
-      data.links.push({ name, url });
-      saveData();
-      renderFiles(true);
-    }
-
-    function saveAbout() {
-      data.about = document.getElementById("aboutEditor").value;
-      document.getElementById("aboutContent").innerText = data.about;
-      saveData();
-      alert("About section updated!");
-    }
-
-    function saveData() {
-      localStorage.setItem("engwerdaData", JSON.stringify(data));
+      const name = document.getElementById("newLinkName").value.trim();
+      const url = document.getElementById("newLinkUrl").value.trim();
+      if (name && url) {
+        let folder = getCurrentFolder();
+        folder.links[name] = url;
+        saveStructure();
+        loadPage();
+      }
     }
   </script>
 </body>
