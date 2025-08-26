@@ -47,19 +47,19 @@ h2 {color:#b30000;}
 </div>
 
 <script>
-// Structure: each folder has folders[] and links[]
+// Initialize structure or load from localStorage
 let structure = JSON.parse(localStorage.getItem("engwerdaStructure")) || { folders: [], links: [] };
 let currentFolder = structure;
-let folderStack = []; // track path
+let folderStack = [];
 let isAdmin = false;
 
 function save() { localStorage.setItem("engwerdaStructure", JSON.stringify(structure)); }
 
-function checkPassword() {
+function checkPassword(){
   const pw = document.getElementById("password").value;
   if(pw==="Austin"){ isAdmin=false; showStudio(); }
   else if(pw==="Admin"){ isAdmin=true; showAdmin(); }
-  else{ alert("Wrong password"); }
+  else { alert("Wrong password"); }
 }
 
 function showStudio(){
@@ -80,13 +80,13 @@ function renderStudio(){
   const area = document.getElementById("fileArea");
   area.innerHTML="";
   currentFolder.folders.forEach((f, idx)=>{
-    const div=document.createElement("div");
+    const div = document.createElement("div");
     div.className="item"; div.innerText=f.name;
     div.onclick=()=>{ folderStack.push(currentFolder); currentFolder=f; renderStudio(); }
     area.appendChild(div);
   });
   currentFolder.links.forEach(l=>{
-    const div=document.createElement("div");
+    const div = document.createElement("div");
     div.className="item"; div.innerText=l.name;
     div.onclick=()=>{ window.open(l.url,"_blank"); }
     area.appendChild(div);
@@ -97,16 +97,17 @@ function renderAdmin(){
   const area = document.getElementById("adminFileArea");
   area.innerHTML="";
   currentFolder.folders.forEach((f, idx)=>{
-    const div=document.createElement("div"); div.className="item"; div.innerText=f.name;
+    const div = document.createElement("div");
+    div.className="item"; div.innerText=f.name;
     div.onclick=()=>{ folderStack.push(currentFolder); currentFolder=f; renderAdmin(); }
-    const del=document.createElement("button"); del.innerText="Delete";
+    const del = document.createElement("button"); del.innerText="Delete";
     del.onclick=(e)=>{ e.stopPropagation(); currentFolder.folders.splice(idx,1); save(); renderAdmin(); }
     div.appendChild(del); area.appendChild(div);
   });
   currentFolder.links.forEach((l, idx)=>{
-    const div=document.createElement("div"); div.className="item"; div.innerText=l.name;
+    const div = document.createElement("div"); div.className="item"; div.innerText=l.name;
     div.onclick=()=>{ window.open(l.url,"_blank"); }
-    const del=document.createElement("button"); del.innerText="Delete";
+    const del = document.createElement("button"); del.innerText="Delete";
     del.onclick=(e)=>{ e.stopPropagation(); currentFolder.links.splice(idx,1); save(); renderAdmin(); }
     div.appendChild(del); area.appendChild(div);
   });
@@ -123,7 +124,7 @@ function addFolder(){
 function addLink(){
   const name=document.getElementById("linkName").value.trim();
   const url=document.getElementById("linkURL").value.trim();
-  if(!name||!url){ alert("Enter link name and URL"); return; }
+  if(!name||!url){ alert("Enter name and URL"); return; }
   currentFolder.links.push({ name:name, url:url });
   document.getElementById("linkName").value=""; document.getElementById("linkURL").value="";
   save(); renderAdmin();
@@ -134,7 +135,7 @@ function goBack(){
 }
 
 function logout(){
-  currentFolder=structure; folderStack=[];
+  currentFolder = structure; folderStack=[];
   document.getElementById("studio").style.display="none";
   document.getElementById("admin").style.display="none";
   document.getElementById("login").style.display="block";
