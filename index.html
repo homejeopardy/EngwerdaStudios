@@ -5,8 +5,8 @@
   <title>Engwerda Studios</title>
   <style>
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
       background-color: #fff;
       color: #000;
     }
@@ -17,198 +17,189 @@
       text-align: center;
       font-family: "American Typewriter", serif;
       font-size: 2em;
-      letter-spacing: 2px;
     }
-    main {
+    #login, #studio, #admin {
+      display: none;
       padding: 20px;
     }
-    .login {
-      max-width: 300px;
-      margin: 100px auto;
-      text-align: center;
-    }
-    .login input {
-      padding: 10px;
-      width: 80%;
-      margin-bottom: 10px;
-    }
-    .login button {
-      padding: 10px 20px;
-      background-color: #b30000;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    .file-item {
+    .folder, .link {
       display: inline-block;
-      text-align: center;
-      margin: 20px;
-      cursor: pointer;
-    }
-    .file-item img {
-      width: 64px;
-      height: 64px;
-    }
-    .admin-panel {
-      margin-top: 20px;
-      padding: 15px;
+      margin: 10px;
+      padding: 20px;
+      background: #f2f2f2;
       border: 2px solid #b30000;
-      border-radius: 10px;
-      background-color: #f9f9f9;
-    }
-    .admin-panel h3 {
-      margin-top: 0;
-      color: #b30000;
-    }
-    input, select, button {
-      margin: 5px 0;
-    }
-    .back-btn {
-      display: block;
-      margin-bottom: 20px;
-      color: #b30000;
-      text-decoration: underline;
+      border-radius: 8px;
+      text-align: center;
       cursor: pointer;
+      width: 120px;
+    }
+    .folder:hover, .link:hover {
+      background: #ffe6e6;
+    }
+    .controls {
+      margin-top: 20px;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 15px;
+      border: none;
+      background: #b30000;
+      color: white;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    button:hover {
+      background: #800000;
+    }
+    h2 {
+      color: #b30000;
     }
   </style>
 </head>
 <body>
   <header>Engwerda Studios</header>
-  <main id="content">
-    <div class="login" id="login">
-      <h2>Enter Password</h2>
-      <input type="password" id="password" placeholder="Password">
-      <br>
-      <button onclick="checkPassword()">Enter</button>
+
+  <!-- LOGIN -->
+  <div id="login">
+    <h2>Enter Password</h2>
+    <input type="password" id="password">
+    <button onclick="checkPassword()">Enter</button>
+  </div>
+
+  <!-- STUDIO PAGE -->
+  <div id="studio">
+    <h2>Welcome to Engwerda Studios</h2>
+    <p>
+      Engwerda Studios is a creative production house dedicated to innovative storytelling, 
+      visual design, and immersive media. We combine artistry and technology to bring 
+      ideas to life — from concept development to full production.
+    </p>
+    <div id="fileArea"></div>
+    <button onclick="goBack()">Back</button>
+  </div>
+
+  <!-- ADMIN PANEL -->
+  <div id="admin">
+    <h2>Admin Panel</h2>
+    <div class="controls">
+      <input type="text" id="folderName" placeholder="Folder Name">
+      <button onclick="addFolder()">Add Folder</button><br>
+      <input type="text" id="linkName" placeholder="Link Name">
+      <input type="text" id="linkURL" placeholder="Link URL">
+      <button onclick="addLink()">Add Link</button>
     </div>
-  </main>
+    <div id="adminFileArea"></div>
+    <button onclick="goBack()">Back</button>
+  </div>
 
   <script>
-    let currentPath = [];
+    // Load structure from localStorage or default
+    let structure = JSON.parse(localStorage.getItem("engwerdaStructure")) || { root: [] };
+    let currentPath = ["root"];
     let isAdmin = false;
 
-    // Load saved structure from localStorage or default
-    let siteStructure = JSON.parse(localStorage.getItem("engwerdaData")) || {
-      folders: {
-        "Projects": { folders: {}, links: { "Website": "https://example.com" } }
-      },
-      links: {
-        "Studio Reel": "https://example.com/reel.mp4"
-      }
-    };
-
     function saveStructure() {
-      localStorage.setItem("engwerdaData", JSON.stringify(siteStructure));
+      localStorage.setItem("engwerdaStructure", JSON.stringify(structure));
     }
 
     function checkPassword() {
-      const pw = document.getElementById("password").value;
+      let pw = document.getElementById("password").value;
       if (pw === "Austin") {
         isAdmin = false;
-        loadPage();
+        document.getElementById("login").style.display = "none";
+        document.getElementById("studio").style.display = "block";
+        render();
       } else if (pw === "Admin") {
         isAdmin = true;
-        loadPage();
+        document.getElementById("login").style.display = "none";
+        document.getElementById("admin").style.display = "block";
+        renderAdmin();
       } else {
-        alert("Incorrect password");
+        alert("Wrong password");
       }
     }
 
     function getCurrentFolder() {
-      let folder = siteStructure;
-      for (let p of currentPath) {
-        folder = folder.folders[p];
-      }
+      let folder = structure;
+      for (let part of currentPath) folder = folder[part];
       return folder;
     }
 
-    function loadPage() {
-      const content = document.getElementById("content");
+    function render() {
       let folder = getCurrentFolder();
-
-      let html = "";
-      if (currentPath.length > 0) {
-        html += `<div class="back-btn" onclick="goBack()">⬅ Back</div>`;
-      } else {
-        html += `
-          <h2>Welcome to Engwerda Studios</h2>
-          <p>Engwerda Studios is a creative hub for film, music, and digital media. 
-          We specialize in storytelling that inspires, challenges, and connects audiences worldwide.</p>
-          <p>Explore our projects, collaborations, and archives using the folders and links below.</p>
-        `;
-      }
-
-      // Display folders
-      for (let f in folder.folders) {
-        html += `
-          <div class="file-item" onclick="enterFolder('${f}')">
-            <img src="https://img.icons8.com/fluency/96/folder-invoices.png" alt="folder">
-            <div>${f}</div>
-          </div>`;
-      }
-
-      // Display links
-      for (let l in folder.links) {
-        html += `
-          <div class="file-item" onclick="window.open('${folder.links[l]}','_blank')">
-            <img src="https://img.icons8.com/fluency/96/document.png" alt="link">
-            <div>${l}</div>
-          </div>`;
-      }
-
-      if (isAdmin) {
-        html += `
-          <div class="admin-panel">
-            <h3>Admin Panel</h3>
-            <label>New Folder:</label><br>
-            <input type="text" id="newFolder" placeholder="Folder name">
-            <button onclick="addFolder()">Add Folder</button><br>
-
-            <label>New Link:</label><br>
-            <input type="text" id="newLinkName" placeholder="Link name"><br>
-            <input type="text" id="newLinkUrl" placeholder="Link URL">
-            <button onclick="addLink()">Add Link</button>
-          </div>
-        `;
-      }
-
-      content.innerHTML = html;
+      let area = document.getElementById("fileArea");
+      area.innerHTML = "";
+      folder.forEach((item, idx) => {
+        let div = document.createElement("div");
+        div.className = item.type;
+        div.innerText = item.name;
+        if (item.type === "folder") {
+          div.onclick = () => { currentPath.push(item.name); render(); };
+        } else if (item.type === "link") {
+          div.onclick = () => { window.open(item.url, "_blank"); };
+        }
+        area.appendChild(div);
+      });
     }
 
-    function enterFolder(name) {
-      currentPath.push(name);
-      loadPage();
-    }
-
-    function goBack() {
-      currentPath.pop();
-      loadPage();
+    function renderAdmin() {
+      let folder = getCurrentFolder();
+      let area = document.getElementById("adminFileArea");
+      area.innerHTML = "";
+      folder.forEach((item, idx) => {
+        let div = document.createElement("div");
+        div.className = item.type;
+        div.innerText = item.name;
+        if (item.type === "folder") {
+          div.onclick = () => { currentPath.push(item.name); renderAdmin(); };
+        } else if (item.type === "link") {
+          div.onclick = () => { window.open(item.url, "_blank"); };
+        }
+        // delete button
+        let delBtn = document.createElement("button");
+        delBtn.innerText = "Delete";
+        delBtn.onclick = (e) => { 
+          e.stopPropagation();
+          folder.splice(idx, 1); 
+          saveStructure(); 
+          renderAdmin(); 
+        };
+        div.appendChild(delBtn);
+        area.appendChild(div);
+      });
     }
 
     function addFolder() {
-      const name = document.getElementById("newFolder").value.trim();
-      if (name) {
-        let folder = getCurrentFolder();
-        if (!folder.folders[name]) {
-          folder.folders[name] = { folders: {}, links: {} };
-          saveStructure();
-          loadPage();
-        } else {
-          alert("Folder already exists!");
-        }
-      }
+      const name = document.getElementById("folderName").value.trim();
+      if (!name) return alert("Enter folder name");
+      let folder = getCurrentFolder();
+      folder.push({ type: "folder", name: name, [name]: [] });
+      document.getElementById("folderName").value = "";
+      saveStructure();
+      renderAdmin();
     }
 
     function addLink() {
-      const name = document.getElementById("newLinkName").value.trim();
-      const url = document.getElementById("newLinkUrl").value.trim();
-      if (name && url) {
-        let folder = getCurrentFolder();
-        folder.links[name] = url;
-        saveStructure();
-        loadPage();
+      const name = document.getElementById("linkName").value.trim();
+      const url = document.getElementById("linkURL").value.trim();
+      if (!name || !url) return alert("Enter link name and URL");
+      let folder = getCurrentFolder();
+      folder.push({ type: "link", name: name, url: url });
+      document.getElementById("linkName").value = "";
+      document.getElementById("linkURL").value = "";
+      saveStructure();
+      renderAdmin();
+    }
+
+    function goBack() {
+      if (currentPath.length > 1) {
+        currentPath.pop();
+        if (isAdmin) renderAdmin();
+        else render();
       }
     }
+
+    document.getElementById("login").style.display = "block";
   </script>
 </body>
 </html>
