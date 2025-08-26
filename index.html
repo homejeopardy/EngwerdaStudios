@@ -5,170 +5,204 @@
   <title>Engwerda Studios</title>
   <style>
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
-      background: white;
-      color: #222;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      background-color: white;
+      color: #b30000;
+      text-align: center;
+      margin: 0;
+      padding: 0;
     }
     header {
-      background: red;
+      background-color: #b30000;
       color: white;
-      width: 100%;
       padding: 20px;
-      text-align: center;
       font-family: "American Typewriter", serif;
-      font-size: 2em;
-    }
-    #content {
-      max-width: 800px;
-      margin: 20px;
-      padding: 20px;
-      border: 2px solid red;
-      border-radius: 8px;
-      background: #fff;
-    }
-    .folder, .link {
-      display: inline-block;
-      margin: 10px;
-      padding: 20px;
-      width: 100px;
-      height: 100px;
-      border: 2px solid red;
-      border-radius: 8px;
-      text-align: center;
-      cursor: pointer;
-      background: white;
-      color: red;
+      font-size: 32px;
       font-weight: bold;
     }
-    .folder:hover, .link:hover {
-      background: #ffe5e5;
+    #login {
+      margin-top: 100px;
     }
-    #adminControls {
-      margin-top: 20px;
-      padding: 15px;
-      border: 2px dashed red;
-      display: none;
+    .container {
+      padding: 20px;
     }
-    input, button {
-      margin: 5px;
+    .item {
+      display: inline-block;
+      width: 120px;
+      height: 120px;
+      margin: 15px;
+      border: 2px solid #b30000;
+      border-radius: 12px;
+      background-color: white;
+      color: #b30000;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      transition: transform 0.2s;
+    }
+    .item:hover {
+      transform: scale(1.05);
+      background-color: #ffe5e5;
+    }
+    .admin-panel {
+      margin-top: 30px;
+      padding: 20px;
+      border-top: 2px solid #b30000;
+    }
+    input, button, textarea {
+      margin: 8px;
       padding: 8px;
-      border: 1px solid red;
-      border-radius: 5px;
+      border: 1px solid #b30000;
+      border-radius: 6px;
+      font-size: 14px;
     }
     button {
-      background: red;
+      background-color: #b30000;
       color: white;
       cursor: pointer;
     }
     button:hover {
-      background: #b30000;
+      background-color: #800000;
+    }
+    #about {
+      margin-top: 40px;
+      text-align: left;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
     }
   </style>
 </head>
 <body>
   <header>Engwerda Studios</header>
-  <div id="content">
-    <div id="login">
-      <h2>Enter Password</h2>
-      <input type="password" id="passwordInput" placeholder="Password">
-      <button onclick="checkPassword()">Enter</button>
-    </div>
-    <div id="mainPage" style="display:none;">
-      <h2>Welcome to Engwerda Studios</h2>
-      <p>
-        Engwerda Studios is a creative production house focused on film, design, and multimedia storytelling. 
-        We bring innovative ideas to life through a blend of artistry and technology, 
-        delivering high-quality experiences that inspire and connect audiences.
+  <div id="login">
+    <h2>Enter Password</h2>
+    <input type="password" id="passwordInput" placeholder="Password">
+    <button onclick="checkPassword()">Enter</button>
+  </div>
+
+  <div id="main" style="display:none;">
+    <div class="container" id="fileContainer"></div>
+    <div id="about">
+      <h2>About Engwerda Studios</h2>
+      <p id="aboutContent">
+        Engwerda Studios is a creative hub dedicated to producing high-quality projects in film, music, and design. 
+        We believe in the power of storytelling, innovation, and collaboration. Our studio combines passion with professionalism 
+        to bring ideas to life and share them with the world.
       </p>
-      <div id="items"></div>
-    </div>
-    <div id="adminControls">
-      <h3>Admin Controls</h3>
-      <input type="text" id="newFolderName" placeholder="Folder Name">
-      <button onclick="addFolder()">Add Folder</button><br>
-      <input type="text" id="newLinkName" placeholder="Link Name">
-      <input type="text" id="newLinkURL" placeholder="Link URL">
-      <button onclick="addLink()">Add Link</button>
-      <button onclick="resetAll()">Reset All</button>
     </div>
   </div>
 
+  <div id="admin" style="display:none;">
+    <h2>Admin Panel</h2>
+    <div class="admin-panel">
+      <h3>Add Folder</h3>
+      <input type="text" id="folderName" placeholder="Folder Name">
+      <button onclick="addFolder()">Add</button>
+
+      <h3>Add Link</h3>
+      <input type="text" id="linkName" placeholder="Link Name">
+      <input type="text" id="linkURL" placeholder="Link URL">
+      <button onclick="addLink()">Add</button>
+
+      <h3>Edit About Section</h3>
+      <textarea id="aboutEditor" rows="5" cols="50"></textarea><br>
+      <button onclick="saveAbout()">Save About</button>
+    </div>
+    <div class="container" id="adminFileContainer"></div>
+  </div>
+
   <script>
-    let items = JSON.parse(localStorage.getItem("engwerdaItems")) || [];
+    let currentPath = [];
+    let isAdmin = false;
+
+    // Load data from localStorage or set defaults
+    let data = JSON.parse(localStorage.getItem("engwerdaData")) || {
+      folders: {},
+      links: [],
+      about: document.getElementById("aboutContent").innerText
+    };
 
     function checkPassword() {
       const pass = document.getElementById("passwordInput").value;
-      document.getElementById("login").style.display = "none";
       if (pass === "Austin") {
-        document.getElementById("mainPage").style.display = "block";
-        renderItems();
+        document.getElementById("login").style.display = "none";
+        document.getElementById("main").style.display = "block";
+        isAdmin = false;
+        renderFiles();
       } else if (pass === "Admin") {
-        document.getElementById("mainPage").style.display = "block";
-        document.getElementById("adminControls").style.display = "block";
-        renderItems();
+        document.getElementById("login").style.display = "none";
+        document.getElementById("admin").style.display = "block";
+        isAdmin = true;
+        renderFiles(true);
+        document.getElementById("aboutEditor").value = data.about;
       } else {
-        alert("Wrong password!");
-        document.getElementById("login").style.display = "block";
+        alert("Incorrect password!");
       }
     }
 
-    function saveItems() {
-      localStorage.setItem("engwerdaItems", JSON.stringify(items));
-    }
+    function renderFiles(admin=false) {
+      const container = document.getElementById(admin ? "adminFileContainer" : "fileContainer");
+      container.innerHTML = "";
 
-    function renderItems() {
-      const itemsDiv = document.getElementById("items");
-      itemsDiv.innerHTML = "";
-      items.forEach((item, index) => {
-        let el = document.createElement("div");
-        el.className = item.type;
-        el.innerText = item.name;
-        el.onclick = () => {
-          if (item.type === "folder") {
-            alert("Entering folder: " + item.name);
-          } else if (item.type === "link") {
-            window.open(item.url, "_blank");
-          }
+      let folder = data.folders;
+      for (let part of currentPath) {
+        folder = folder[part].folders;
+      }
+
+      // Folders
+      for (let f in folder) {
+        let div = document.createElement("div");
+        div.className = "item";
+        div.innerText = f;
+        div.onclick = () => {
+          currentPath.push(f);
+          renderFiles(admin);
         };
-        itemsDiv.appendChild(el);
-      });
+        container.appendChild(div);
+      }
+
+      // Links
+      let links = admin ? data.links : data.links;
+      for (let link of links) {
+        let div = document.createElement("div");
+        div.className = "item";
+        div.innerText = link.name;
+        div.onclick = () => window.open(link.url, "_blank");
+        container.appendChild(div);
+      }
     }
 
     function addFolder() {
-      const name = document.getElementById("newFolderName").value;
-      if (name) {
-        items.push({ type: "folder", name: name });
-        saveItems();
-        renderItems();
-        document.getElementById("newFolderName").value = "";
-      }
+      const name = document.getElementById("folderName").value.trim();
+      if (!name) return alert("Folder name required.");
+      if (!data.folders[name]) data.folders[name] = { folders: {}, links: [] };
+      saveData();
+      renderFiles(true);
     }
 
     function addLink() {
-      const name = document.getElementById("newLinkName").value;
-      const url = document.getElementById("newLinkURL").value;
-      if (name && url) {
-        items.push({ type: "link", name: name, url: url });
-        saveItems();
-        renderItems();
-        document.getElementById("newLinkName").value = "";
-        document.getElementById("newLinkURL").value = "";
-      }
+      const name = document.getElementById("linkName").value.trim();
+      const url = document.getElementById("linkURL").value.trim();
+      if (!name || !url) return alert("Both fields required.");
+      data.links.push({ name, url });
+      saveData();
+      renderFiles(true);
     }
 
-    function resetAll() {
-      if (confirm("Are you sure you want to reset everything?")) {
-        items = [];
-        saveItems();
-        renderItems();
-      }
+    function saveAbout() {
+      data.about = document.getElementById("aboutEditor").value;
+      document.getElementById("aboutContent").innerText = data.about;
+      saveData();
+      alert("About section updated!");
     }
 
-    renderItems();
+    function saveData() {
+      localStorage.setItem("engwerdaData", JSON.stringify(data));
+    }
   </script>
 </body>
 </html>
