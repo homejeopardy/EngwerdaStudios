@@ -17,7 +17,7 @@
       color: #4db6ac;
     }
     .login, .content, .admin {
-      margin-top: 50px;
+      margin-top: 30px;
     }
     input, button {
       padding: 10px;
@@ -37,15 +37,16 @@
       background: #399087;
     }
     .folder {
-      margin: 20px auto;
+      margin: 15px auto;
       padding: 15px;
       border: 1px solid #4db6ac;
       border-radius: 8px;
       width: 300px;
       background: #222;
+      cursor: pointer;
     }
     .folder h3 {
-      margin: 0 0 10px 0;
+      margin: 0;
       color: #ffcc80;
     }
     .link-list {
@@ -62,6 +63,10 @@
     .link-list a:hover {
       text-decoration: underline;
     }
+    .backBtn {
+      margin: 20px;
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -76,7 +81,7 @@
 
   <!-- User Content -->
   <div class="content" id="contentDiv" style="display:none;">
-    <h2>Folders & Links</h2>
+    <h2 id="userHeader">Folders</h2>
     <div id="foldersContainer"></div>
     <button onclick="logout()">Logout</button>
   </div>
@@ -92,18 +97,18 @@
     <input type="text" id="linkName" placeholder="Link name">
     <input type="text" id="linkURL" placeholder="https://example.com">
     <button onclick="addLink()">Add Link</button>
+    <h2 id="adminHeader">Folders</h2>
     <div id="adminFolders"></div>
     <button onclick="logout()">Logout</button>
   </div>
 
   <script>
-    // Load saved data
+    // Data store
     let data = JSON.parse(localStorage.getItem("engwerdaData")) || {};
+    let currentView = "folders"; // can be "folders" or a folder name
 
     function saveData() {
       localStorage.setItem("engwerdaData", JSON.stringify(data));
-      renderFolders();
-      renderAdmin();
     }
 
     function checkPassword() {
@@ -111,11 +116,11 @@
       if (pwd === "Austin") {
         document.getElementById("loginDiv").style.display = "none";
         document.getElementById("contentDiv").style.display = "block";
-        renderFolders();
+        showUserFolders();
       } else if (pwd === "Admin") {
         document.getElementById("loginDiv").style.display = "none";
         document.getElementById("adminDiv").style.display = "block";
-        renderAdmin();
+        showAdminFolders();
       } else {
         alert("Incorrect password!");
       }
@@ -126,16 +131,20 @@
       document.getElementById("contentDiv").style.display = "none";
       document.getElementById("adminDiv").style.display = "none";
       document.getElementById("passwordInput").value = "";
+      currentView = "folders";
     }
 
+    // Add folder
     function addFolder() {
       const name = document.getElementById("folderName").value.trim();
       if (!name) { alert("Enter folder name"); return; }
       if (!data[name]) data[name] = [];
       document.getElementById("folderName").value = "";
       saveData();
+      showAdminFolders();
     }
 
+    // Add link
     function addLink() {
       const folder = document.getElementById("folderSelect").value.trim();
       const linkName = document.getElementById("linkName").value.trim();
@@ -146,44 +155,77 @@
       document.getElementById("linkName").value = "";
       document.getElementById("linkURL").value = "";
       saveData();
+      showAdminFolders();
     }
 
-    function renderFolders() {
+    // User view
+    function showUserFolders() {
+      currentView = "folders";
       const container = document.getElementById("foldersContainer");
+      document.getElementById("userHeader").textContent = "Folders";
       container.innerHTML = "";
       for (let folder in data) {
         const div = document.createElement("div");
         div.className = "folder";
         div.innerHTML = `<h3>${folder}</h3>`;
-        const ul = document.createElement("ul");
-        ul.className = "link-list";
-        data[folder].forEach(link => {
-          const li = document.createElement("li");
-          li.innerHTML = `<a href="${link.url}" target="_blank">${link.name}</a>`;
-          ul.appendChild(li);
-        });
-        div.appendChild(ul);
+        div.onclick = () => showUserLinks(folder);
         container.appendChild(div);
       }
     }
 
-    function renderAdmin() {
+    function showUserLinks(folder) {
+      currentView = folder;
+      const container = document.getElementById("foldersContainer");
+      document.getElementById("userHeader").textContent = folder;
+      container.innerHTML = "";
+      const backBtn = document.createElement("button");
+      backBtn.textContent = "← Back to folders";
+      backBtn.className = "backBtn";
+      backBtn.onclick = showUserFolders;
+      container.appendChild(backBtn);
+      const ul = document.createElement("ul");
+      ul.className = "link-list";
+      data[folder].forEach(link => {
+        const li = document.createElement("li");
+        li.innerHTML = `<a href="${link.url}" target="_blank">${link.name}</a>`;
+        ul.appendChild(li);
+      });
+      container.appendChild(ul);
+    }
+
+    // Admin view
+    function showAdminFolders() {
+      currentView = "folders";
       const container = document.getElementById("adminFolders");
-      container.innerHTML = "<h3>Existing Folders</h3>";
+      document.getElementById("adminHeader").textContent = "Folders";
+      container.innerHTML = "";
       for (let folder in data) {
         const div = document.createElement("div");
         div.className = "folder";
         div.innerHTML = `<h3>${folder}</h3>`;
-        const ul = document.createElement("ul");
-        ul.className = "link-list";
-        data[folder].forEach(link => {
-          const li = document.createElement("li");
-          li.textContent = `${link.name} → ${link.url}`;
-          ul.appendChild(li);
-        });
-        div.appendChild(ul);
+        div.onclick = () => showAdminLinks(folder);
         container.appendChild(div);
       }
+    }
+
+    function showAdminLinks(folder) {
+      currentView = folder;
+      const container = document.getElementById("adminFolders");
+      document.getElementById("adminHeader").textContent = folder;
+      container.innerHTML = "";
+      const backBtn = document.createElement("button");
+      backBtn.textContent = "← Back to folders";
+      backBtn.className = "backBtn";
+      backBtn.onclick = showAdminFolders;
+      container.appendChild(backBtn);
+      const ul = document.createElement("ul");
+      ul.className = "link-list";
+      data[folder].forEach(link => {
+        const li = document.createElement("li");
+        li.textContent = `${link.name} → ${link.url}`;
+        ul.appendChild(li);
+      });
+      container.appendChild(ul);
     }
   </script>
 </body>
