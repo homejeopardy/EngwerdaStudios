@@ -4,21 +4,10 @@
 <meta charset="UTF-8">
 <title>Engwerda Studios</title>
 <style>
-body {font-family: Arial, sans-serif; margin:0; padding:0; background:#fff; color:#000;}
+body {margin:0;padding:0;font-family:Arial,sans-serif;background:#fff;color:#000;}
 header {background:#b30000;color:#fff;padding:20px;text-align:center;font-family:"American Typewriter", serif;font-size:2em;}
 #login,#studio,#admin {display:none;padding:20px;}
-.item {display:inline-block;margin:10px;padding:20px;width:120px;border:2px solid #b30000;border-radius:8px;text-align:center;cursor:pointer;background:#f2f2f2;}
-.item:hover {background:#ffe6e6;}
-button {margin:5px;padding:10px 15px;border:none;background:#b30000;color:white;cursor:pointer;b<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Engwerda Studios</title>
-<style>
-body {font-family: Arial, sans-serif; margin:0; padding:0; background:#fff; color:#000;}
-header {background:#b30000;color:#fff;padding:20px;text-align:center;font-family:"American Typewriter", serif;font-size:2em;}
-#login,#studio,#admin {display:none;padding:20px;}
-.item {display:inline-block;margin:10px;padding:20px;width:120px;border:2px solid #b30000;border-radius:8px;text-align:center;cursor:pointer;background:#f2f2f2;}
+.item {display:inline-block;margin:10px;padding:20px;width:140px;border:2px solid #b30000;border-radius:8px;text-align:center;cursor:pointer;background:#f2f2f2;}
 .item:hover {background:#ffe6e6;}
 button {margin:5px;padding:10px 15px;border:none;background:#b30000;color:white;cursor:pointer;border-radius:6px;}
 button:hover {background:#800000;}
@@ -27,6 +16,7 @@ h2 {color:#b30000;}
 </style>
 </head>
 <body>
+
 <header>Engwerda Studios</header>
 
 <div id="login">
@@ -58,275 +48,112 @@ h2 {color:#b30000;}
 </div>
 
 <script>
-// Persistent structure
+// --- DATA STRUCTURE ---
 let structure = JSON.parse(localStorage.getItem("engwerdaStructure")) || { folders: [], links: [] };
 let currentFolder = structure;
 let folderStack = [];
 let isAdmin = false;
 
-// Save structure
-function save() {
-  localStorage.setItem("engwerdaStructure", JSON.stringify(structure));
-}
-
-// Check password
-function checkPassword() {
-  const pw = document.getElementById("password").value;
-  if (pw === "Austin") { isAdmin=false; showStudio(); }
-  else if (pw === "Admin") { isAdmin=true; showAdmin(); }
-  else alert("Wrong password");
-}
-
-// Show Studio page
-function showStudio() {
-  document.getElementById("login").style.display="none";
-  document.getElementById("studio").style.display="block";
-  document.getElementById("admin").style.display="none";
-  renderStudio();
-}
-
-// Show Admin page
-function showAdmin() {
-  document.getElementById("login").style.display="none";
-  document.getElementById("studio").style.display="none";
-  document.getElementById("admin").style.display="block";
-  renderAdmin();
-}
-
-// Render folders and links for Studio
-function renderStudio() {
-  const area = document.getElementById("fileArea");
-  area.innerHTML = "";
-  currentFolder.folders.forEach(f => {
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerText = f.name;
-    div.onclick = () => { folderStack.push(currentFolder); currentFolder = f; renderStudio(); };
-    area.appendChild(div);
-  });
-  currentFolder.links.forEach(l => {
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerText = l.name;
-    div.onclick = () => { window.open(l.url, "_blank"); };
-    area.appendChild(div);
-  });
-}
-
-// Render folders and links for Admin
-function renderAdmin() {
-  const area = document.getElementById("adminFileArea");
-  area.innerHTML = "";
-  currentFolder.folders.forEach(f => {
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerText = f.name;
-    div.onclick = () => { folderStack.push(currentFolder); currentFolder = f; renderAdmin(); };
-    const del = document.createElement("button");
-    del.innerText = "Delete";
-    del.onclick = (e) => { e.stopPropagation(); currentFolder.folders = currentFolder.folders.filter(x=>x!==f); save(); renderAdmin(); };
-    div.appendChild(del);
-    area.appendChild(div);
-  });
-  currentFolder.links.forEach(l => {
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerText = l.name;
-    div.onclick = () => { window.open(l.url, "_blank"); };
-    const del = document.createElement("button");
-    del.innerText = "Delete";
-    del.onclick = (e) => { e.stopPropagation(); currentFolder.links = currentFolder.links.filter(x=>x!==l); save(); renderAdmin(); };
-    div.appendChild(del);
-    area.appendChild(div);
-  });
-}
-
-// Add folder
-function addFolder() {
-  const name = document.getElementById("folderName").value.trim();
-  if (!name) { alert("Enter folder name"); return; }
-  currentFolder.folders.push({ name: name, folders: [], links: [] });
-  document.getElementById("folderName").value = "";
-  save();
-  renderAdmin();
-}
-
-// Add link
-function addLink() {
-  const name = document.getElementById("linkName").value.trim();
-  const url = document.getElementById("linkURL").value.trim();
-  if (!name || !url) { alert("Enter link name and URL"); return; }
-  currentFolder.links.push({ name: name, url: url });
-  document.getElementById("linkName").value = "";
-  document.getElementById("linkURL").value = "";
-  save();
-  renderAdmin();
-}
-
-// Go back one folder
-function goBack() {
-  if (folderStack.length > 0) { currentFolder = folderStack.pop(); isAdmin ? renderAdmin() : renderStudio(); }
-}
-
-// Logout
-function logout() {
-  currentFolder = structure;
-  folderStack = [];
-  document.getElementById("login").style.display="block";
-  document.getElementById("studio").style.display="none";
-  document.getElementById("admin").style.display="none";
-}
-
-// Show login at start
-document.getElementById("login").style.display = "block";
-</script>
-</body>
-</html>
-order-radius:6px;}
-button:hover {background:#800000;}
-h2 {color:#b30000;}
-.controls input {margin:5px;padding:5px;}
-</style>
-</head>
-<body>
-<header>Engwerda Studios</header>
-
-<div id="login">
-<h2>Enter Password</h2>
-<input type="password" id="password">
-<button onclick="checkPassword()">Enter</button>
-</div>
-
-<div id="studio">
-<h2>Welcome to Engwerda Studios</h2>
-<p>Engwerda Studios is a creative production house dedicated to innovative storytelling, visual design, and immersive media.</p>
-<div id="fileArea"></div>
-<button onclick="goBack()">Back</button>
-<button onclick="logout()">Logout</button>
-</div>
-
-<div id="admin">
-<h2>Admin Panel</h2>
-<div class="controls">
-<input type="text" id="folderName" placeholder="Folder Name">
-<button onclick="addFolder()">Add Folder</button><br>
-<input type="text" id="linkName" placeholder="Link Name">
-<input type="text" id="linkURL" placeholder="Link URL">
-<button onclick="addLink()">Add Link</button>
-</div>
-<div id="adminFileArea"></div>
-<button onclick="goBack()">Back</button>
-<button onclick="logout()">Logout</button>
-</div>
-
-<script>
-// Initialize structure or load from localStorage
-let structure = JSON.parse(localStorage.getItem("engwerdaStructure")) || { folders: [], links: [] };
-let currentFolder = structure;
-let folderStack = [];
-let isAdmin = false;
-
-// Save to localStorage
+// --- STORAGE ---
 function save() { localStorage.setItem("engwerdaStructure", JSON.stringify(structure)); }
 
-// Check password
+// --- PASSWORD CHECK ---
 function checkPassword() {
-  const pw = document.getElementById("password").value;
-  if(pw==="Austin"){ isAdmin=false; showStudio(); }
-  else if(pw==="Admin"){ isAdmin=true; showAdmin(); }
-  else { alert("Wrong password"); }
+    const pw = document.getElementById("password").value;
+    if(pw === "Austin") { isAdmin=false; showStudio(); }
+    else if(pw === "Admin") { isAdmin=true; showAdmin(); }
+    else alert("Wrong password");
 }
 
-// Show Studio
-function showStudio(){
-  document.getElementById("login").style.display="none";
-  document.getElementById("studio").style.display="block";
-  document.getElementById("admin").style.display="none";
-  renderStudio();
+// --- PAGE VIEWS ---
+function showStudio() {
+    document.getElementById("login").style.display="none";
+    document.getElementById("studio").style.display="block";
+    document.getElementById("admin").style.display="none";
+    renderStudio();
 }
 
-// Show Admin
-function showAdmin(){
-  document.getElementById("login").style.display="none";
-  document.getElementById("studio").style.display="none";
-  document.getElementById("admin").style.display="block";
-  renderAdmin();
+function showAdmin() {
+    document.getElementById("login").style.display="none";
+    document.getElementById("studio").style.display="none";
+    document.getElementById("admin").style.display="block";
+    renderAdmin();
 }
 
-// Render Studio view
-function renderStudio(){
-  const area = document.getElementById("fileArea");
-  area.innerHTML="";
-  currentFolder.folders.forEach((f, idx)=>{
-    const div = document.createElement("div");
-    div.className="item"; div.innerText=f.name;
-    div.onclick=()=>{ folderStack.push(currentFolder); currentFolder=f; renderStudio(); }
-    area.appendChild(div);
-  });
-  currentFolder.links.forEach(l=>{
-    const div = document.createElement("div");
-    div.className="item"; div.innerText=l.name;
-    div.onclick=()=>{ window.open(l.url,"_blank"); }
-    area.appendChild(div);
-  });
+// --- RENDER STUDIO ---
+function renderStudio() {
+    const area = document.getElementById("fileArea");
+    area.innerHTML="";
+    currentFolder.folders.forEach(f => {
+        const div = document.createElement("div");
+        div.className="item"; div.innerText=f.name;
+        div.onclick = () => { folderStack.push(currentFolder); currentFolder=f; renderStudio(); };
+        area.appendChild(div);
+    });
+    currentFolder.links.forEach(l => {
+        const div = document.createElement("div");
+        div.className="item"; div.innerText=l.name;
+        div.onclick = () => { window.open(l.url,"_blank"); };
+        area.appendChild(div);
+    });
 }
 
-// Render Admin view
-function renderAdmin(){
-  const area = document.getElementById("adminFileArea");
-  area.innerHTML="";
-  currentFolder.folders.forEach((f, idx)=>{
-    const div = document.createElement("div");
-    div.className="item"; div.innerText=f.name;
-    div.onclick=()=>{ folderStack.push(currentFolder); currentFolder=f; renderAdmin(); }
-    const del = document.createElement("button");
-    del.innerText="Delete";
-    del.onclick=(e)=>{ e.stopPropagation(); currentFolder.folders.splice(idx,1); save(); renderAdmin(); }
-    div.appendChild(del); area.appendChild(div);
-  });
-  currentFolder.links.forEach((l, idx)=>{
-    const div = document.createElement("div"); div.className="item"; div.innerText=l.name;
-    div.onclick=()=>{ window.open(l.url,"_blank"); }
-    const del = document.createElement("button");
-    del.innerText="Delete";
-    del.onclick=(e)=>{ e.stopPropagation(); currentFolder.links.splice(idx,1); save(); renderAdmin(); }
-    div.appendChild(del); area.appendChild(div);
-  });
+// --- RENDER ADMIN ---
+function renderAdmin() {
+    const area = document.getElementById("adminFileArea");
+    area.innerHTML="";
+    currentFolder.folders.forEach(f => {
+        const div = document.createElement("div");
+        div.className="item"; div.innerText=f.name;
+        div.onclick = () => { folderStack.push(currentFolder); currentFolder=f; renderAdmin(); };
+        const del = document.createElement("button"); del.innerText="Delete";
+        del.onclick = (e) => { e.stopPropagation(); currentFolder.folders = currentFolder.folders.filter(x=>x!==f); save(); renderAdmin(); };
+        div.appendChild(del);
+        area.appendChild(div);
+    });
+    currentFolder.links.forEach(l => {
+        const div = document.createElement("div"); div.className="item"; div.innerText=l.name;
+        div.onclick = () => { window.open(l.url,"_blank"); };
+        const del = document.createElement("button"); del.innerText="Delete";
+        del.onclick = (e) => { e.stopPropagation(); currentFolder.links = currentFolder.links.filter(x=>x!==l); save(); renderAdmin(); };
+        div.appendChild(del);
+        area.appendChild(div);
+    });
 }
 
-// Add Folder
-function addFolder(){
-  const name=document.getElementById("folderName").value.trim();
-  if(!name){ alert("Enter folder name"); return; }
-  currentFolder.folders.push({ name:name, folders:[], links:[] });
-  document.getElementById("folderName").value="";
-  save(); renderAdmin();
+// --- ADMIN FUNCTIONS ---
+function addFolder() {
+    const name = document.getElementById("folderName").value.trim();
+    if(!name) { alert("Enter folder name"); return; }
+    currentFolder.folders.push({ name:name, folders:[], links:[] });
+    document.getElementById("folderName").value="";
+    save(); renderAdmin();
 }
 
-// Add Link
-function addLink(){
-  const name=document.getElementById("linkName").value.trim();
-  const url=document.getElementById("linkURL").value.trim();
-  if(!name||!url){ alert("Enter name and URL"); return; }
-  currentFolder.links.push({ name:name, url:url });
-  document.getElementById("linkName").value=""; document.getElementById("linkURL").value="";
-  save(); renderAdmin();
+function addLink() {
+    const name = document.getElementById("linkName").value.trim();
+    const url = document.getElementById("linkURL").value.trim();
+    if(!name || !url) { alert("Enter name and URL"); return; }
+    currentFolder.links.push({ name:name, url:url });
+    document.getElementById("linkName").value="";
+    document.getElementById("linkURL").value="";
+    save(); renderAdmin();
 }
 
-// Go Back
-function goBack(){
-  if(folderStack.length>0){ currentFolder = folderStack.pop(); isAdmin?renderAdmin():renderStudio(); }
+// --- NAVIGATION ---
+function goBack() {
+    if(folderStack.length>0) { currentFolder=folderStack.pop(); isAdmin?renderAdmin():renderStudio(); }
 }
 
-// Logout
-function logout(){
-  currentFolder = structure; folderStack=[];
-  document.getElementById("studio").style.display="none";
-  document.getElementById("admin").style.display="none";
-  document.getElementById("login").style.display="block";
+// --- LOGOUT ---
+function logout() {
+    currentFolder = structure; folderStack=[];
+    document.getElementById("login").style.display="block";
+    document.getElementById("studio").style.display="none";
+    document.getElementById("admin").style.display="none";
 }
 
-// Show login on start
+// --- INIT ---
 document.getElementById("login").style.display="block";
 </script>
 </body>
